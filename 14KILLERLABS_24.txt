@@ -1356,3 +1356,75 @@ R20#
 ping vrf CORP 10.100.1.1 source e1/3.101
 !!!!!
 
+IP SLA: SERVICE LEVEL AGREEMENT HANDS-ON PRACTICE:
+R1-PLDT:   r2-Globe: .6
+conf t
+no logging console
+int gi3
+no shut
+ip add 192.168.103.5/.6 255.255.255.0
+do wr
+
+R1-PLDT:
+Basic Internet and Config:
+conf t
+line vty 0 14
+exec-timeout 0 0
+ip route 0.0.0.0 0.0.0.0 192.168.108.2
+int Gi1
+no shut
+ip add 192.168.108.5 255.255.255.0
+int Gi2
+no shut
+ip add 192.168.102.5 255.255.255.0
+do ping 8.8.8.8
+
+R2-GLOBE:
+Basic Internet and Config:
+conf t
+line vty 0 14
+exec-timeout 0 0
+ip route 0.0.0.0 0.0.0.0 192.168.108.2
+int Gi1
+no shut
+ip add 192.168.108.6 255.255.255.0
+int Gi2
+no shut
+ip add 192.168.102.6 255.255.255.0
+do ping 8.8.8.8
+
+
+HSRP: Hot Standby Routing Protocol (for low-end Cisco) "standby"
+VRRP: Virtual Router Redundancy Protocol (for Palo Alto, Fortinet, Cisco) "vrrp"
+GLBP: Global Load Balancing Protocol (for high-end Cisco) "glbp"
+
+R1-PLDT Main Line:
+conf t
+no track 5
+track 5 ip sla 5
+int gi2
+standby version 2
+standby 1 ip 192.168.102.7
+standby 1 preempt
+standby 1 priority 150
+standby 1 track 5 decrement 60
+exit
+ip sla 5
+icmp-echo 8.8.8.8 
+frequency 15
+exit
+ip sla schedule 5 life forever start-time now
+track 5 ip sla 5
+delay down 5 up 2
+exit
+HSRP for Globe Backup:
+conf t
+no track 5
+track 5 ip sla 5
+int gi2
+standby version 2
+standby 1 ip 192.168.102.7
+standby 1 preempt
+standby 1 priority 101
+end
+
